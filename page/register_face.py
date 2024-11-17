@@ -1,11 +1,29 @@
 import streamlit as st
+import core
 
 st.header("Register Face")
-camera, photo = st.tabs(["Camera", "Photo"])
+photo, camera = st.tabs(["Camera", "Photo"])
 
-camera.camera_input("Take Photo", disabled=True)
+with camera:
+    head = camera.container()
+    labelc = camera.empty()
+    label = labelc.text_input("Person Name:", "")
+    camerac = camera.empty()
+    picture = camera.camera_input("Take Photo", disabled=label=="")
+    
+    if picture:
+        core.register_face(picture.getbuffer(), label=label)
+        head.success("Registering Face Success")
 
 
-uploaded_files = photo.file_uploader(
-    "Choose a Photo File", accept_multiple_files=True
-)
+
+
+# bagian upload file
+with photo:
+    uploaded_files = photo.file_uploader(
+        "Choose a Photo File", accept_multiple_files=True
+    )
+
+    if uploaded_files is not None:
+        for file in uploaded_files:
+            image = file.getvalue()

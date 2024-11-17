@@ -2,8 +2,8 @@ import streamlit as st
 import numpy as np
 import cv2
 
-# configure streamlite
-st.set_page_config(layout="wide")
+import core
+
 
 
 
@@ -33,7 +33,7 @@ with st.container():
     
     
     # configure opencv
-    cap = cv2.VideoCapture("video.mp4")
+    cap = cv2.VideoCapture(0)
         
     col1.title("Streaming")
     isPlay = False
@@ -45,7 +45,9 @@ with st.container():
         if not ret:
             col1.write("Video Capture Ended")
             continue
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = core.draw_boundary_face(frame=frame)
         frame_placeholder.image(frame,channels="RGB", use_column_width=True)
     
     cap.release()
