@@ -4,7 +4,23 @@ import cv2
 
 import core
 
+rtsp_url = "rtsp://localhost:8554/live.sdp"
 
+def start_stream():
+    if not st.session_state.is_streaming:
+        st.session_state.cap = cv2.VideoCapture(rtsp_url)
+        st.session_state.is_streaming = True
+
+if "is_streaming" not in st.session_state:
+    st.session_state.is_streaming = False
+
+# Function to stop the video stream
+def stop_stream():
+    if st.session_state.is_streaming:
+        st.session_state.is_streaming = False
+        if st.session_state.cap is not None:
+            st.session_state.cap.release()
+            st.session_state.cap = None
 
 
 with st.container():
@@ -32,23 +48,37 @@ with st.container():
     
     
     
-    # configure opencv
-    cap = cv2.VideoCapture(0)
+    
         
     col1.title("Streaming")
-    isPlay = False
-    stop_button_pressed = col1.button("Stop", key="stop")
     
+    
+    # startc, stopc = col1.columns([1, 1])
+    start_button = col1.button("Start", key="start")
+    stop_button = col1.button("Stop", key="stop")
+
+    if start_button:
+        start_stream()
+
+    if stop_button:
+        stop_stream()
+
     frame_placeholder = col1.empty()
-    while not stop_button_pressed:
-        ret, frame = cap.read()
+    # tampil di layar
+    def show_image(frame):
+        if frame_placeholder:
+            frame_placeholder.image(frame, channels="RGB", use_column_width=True)
+
+
+    core.stream_detect.sink(show_image)
+
+
+    while st.session_state.is_streaming and st.session_state.cap.isOpened():
+        ret, frame = st.session_state.cap.read()
         if not ret:
-            col1.write("Video Capture Ended")
-            continue
+            break
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = core.draw_boundary_face(frame=frame)
-        frame_placeholder.image(frame,channels="RGB", use_column_width=True)
+        core.emit_frame(frame=frame)
+
     
-    cap.release()
-    cv2.destroyAllWindows()

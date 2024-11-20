@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import insightface
 from faceindex import FaceIndex
+from streamz import Stream
 
 
 
@@ -14,6 +15,7 @@ def initialize_insightface_model():
 
 model: insightface.app.FaceAnalysis = initialize_insightface_model()
 index: FaceIndex = FaceIndex()
+
 
 def get_face_embedding_from_frame(model, frame):
     # Detect and extract face embeddings from the captured frame
@@ -44,6 +46,10 @@ def register_face(frame, label: str):
     index.add(embedding, label)
 
 
+def emit_frame(frame):
+    stream.emit(frame)
+
+
 def draw_boundary_face(frame):
     faces = model.get(frame)
 
@@ -69,3 +75,8 @@ def draw_boundary_face(frame):
             cv2.putText(frame, labels[0], label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 2)
 
         return frame
+
+
+stream = Stream()
+
+stream_detect = stream.map(draw_boundary_face)
